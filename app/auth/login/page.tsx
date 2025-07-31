@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useProfile } from '../../contexts/ProfileContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { profile } = useProfile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +25,12 @@ export default function LoginPage() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // For now, just redirect to home
-      router.push('/');
+      // Redirect based on profile completion
+      if (profile && profile.profileCompletion >= 100) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding');
+      }
     } catch (err) {
       setError('Invalid email or password');
     } finally {
@@ -33,16 +39,45 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#A866FF] to-[#6F3CFF] flex items-center justify-center p-4 font-poppins">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen relative flex items-center justify-center p-4 font-poppins">
+      {/* Background Images - Responsive */}
+      {/* Desktop Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
+        style={{
+          backgroundImage: "url('/auth-background-desktop.jpg')"
+        }}
+      >
+        {/* Light overlay to maintain vibrancy while ensuring text readability */}
+        <div className="absolute inset-0 bg-black/25"></div>
+      </div>
+      
+      {/* Mobile Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat block md:hidden"
+        style={{
+          backgroundImage: "url('/auth-background.jpg')"
+        }}
+      >
+        {/* Light overlay to maintain vibrancy while ensuring text readability */}
+        <div className="absolute inset-0 bg-black/25"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-[#E9DDFB] text-sm">Sign in to your account</p>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-4 drop-shadow-2xl leading-tight" style={{
+            textShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(168, 102, 255, 0.6), 0 4px 8px rgba(0, 0, 0, 0.8)',
+            WebkitTextStroke: '1px rgba(255, 255, 255, 0.3)'
+          }}>Welcome Back</h1>
+          <p className="text-white text-base sm:text-lg font-medium drop-shadow-lg" style={{
+            textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 255, 255, 0.3)'
+          }}>Sign in to your account</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 sm:p-8 border border-white/20">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
@@ -60,7 +95,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors text-gray-900 bg-white"
                 placeholder="Enter your email"
                 required
               />
@@ -76,20 +111,10 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors text-gray-900 bg-white"
                 placeholder="Enter your password"
                 required
               />
-            </div>
-
-            {/* Forgot Password Link */}
-            <div className="flex justify-end">
-              <Link 
-                href="/auth/forgot-password"
-                className="text-sm text-[#7D3EFF] hover:text-[#A353F2] transition-colors"
-              >
-                Forgot Password?
-              </Link>
             </div>
 
             {/* Submit Button */}

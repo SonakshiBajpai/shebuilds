@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useProfile } from '../../contexts/ProfileContext';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { updateProfile } = useProfile();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,7 +45,13 @@ export default function SignupPage() {
     }
 
     try {
-      // TODO: Implement actual signup logic
+      // Update profile with basic signup info
+      updateProfile({
+        name: formData.name,
+        email: formData.email,
+        profileCompletion: 25, // Basic info completed
+      });
+      
       console.log('Signup attempt:', formData);
       
       // Simulate API call
@@ -59,16 +67,45 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#A866FF] to-[#6F3CFF] flex items-center justify-center p-4 font-poppins">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen relative flex items-center justify-center p-4 font-poppins">
+      {/* Background Images - Responsive */}
+      {/* Desktop Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
+        style={{
+          backgroundImage: "url('/auth-background-desktop.jpg')"
+        }}
+      >
+        {/* Light overlay to maintain vibrancy while ensuring text readability */}
+        <div className="absolute inset-0 bg-black/25"></div>
+      </div>
+      
+      {/* Mobile Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat block md:hidden"
+        style={{
+          backgroundImage: "url('/auth-background.jpg')"
+        }}
+      >
+        {/* Light overlay to maintain vibrancy while ensuring text readability */}
+        <div className="absolute inset-0 bg-black/25"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-[#E9DDFB] text-sm">Join us and get started today</p>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-4 drop-shadow-2xl leading-tight" style={{
+            textShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(168, 102, 255, 0.6), 0 4px 8px rgba(0, 0, 0, 0.8)',
+            WebkitTextStroke: '1px rgba(255, 255, 255, 0.3)'
+          }}>Create Account</h1>
+          <p className="text-white text-base sm:text-lg font-medium drop-shadow-lg" style={{
+            textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 255, 255, 0.3)'
+          }}>Join us and get started today</p>
         </div>
 
         {/* Signup Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 sm:p-8 border border-white/20">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
@@ -87,7 +124,7 @@ export default function SignupPage() {
                 type="text"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors text-gray-900 bg-white"
                 placeholder="Enter your full name"
                 required
               />
@@ -104,7 +141,7 @@ export default function SignupPage() {
                 type="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors text-gray-900 bg-white"
                 placeholder="Enter your email"
                 required
               />
@@ -121,7 +158,7 @@ export default function SignupPage() {
                 type="tel"
                 value={formData.phone}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors text-gray-900 bg-white"
                 placeholder="Enter your phone number"
               />
             </div>
@@ -137,7 +174,7 @@ export default function SignupPage() {
                 type="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors text-gray-900 bg-white"
                 placeholder="Create a password"
                 required
               />
@@ -154,7 +191,7 @@ export default function SignupPage() {
                 type="password"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none transition-colors text-gray-900 bg-white"
                 placeholder="Confirm your password"
                 required
               />

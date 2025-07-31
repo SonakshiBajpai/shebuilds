@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useProfile } from '../contexts/ProfileContext';
 
 interface OnboardingData {
   // Basic Details
@@ -49,6 +50,7 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { updateFromOnboarding } = useProfile();
   
   const [formData, setFormData] = useState<OnboardingData>({
     age: '',
@@ -104,8 +106,9 @@ export default function OnboardingPage() {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      // TODO: Send data to backend API
-      console.log('Onboarding data:', formData);
+      // Save onboarding data to profile context
+      updateFromOnboarding(formData);
+      console.log('Onboarding data saved:', formData);
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -137,12 +140,41 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#A866FF] to-[#6F3CFF] font-poppins">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen relative font-poppins">
+      {/* Background Images - Responsive */}
+      {/* Desktop Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
+        style={{
+          backgroundImage: "url('/auth-background-desktop.jpg')"
+        }}
+      >
+        {/* Light overlay to maintain vibrancy while ensuring text readability */}
+        <div className="absolute inset-0 bg-black/30"></div>
+      </div>
+      
+      {/* Mobile Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat block md:hidden"
+        style={{
+          backgroundImage: "url('/auth-background.jpg')"
+        }}
+      >
+        {/* Light overlay to maintain vibrancy while ensuring text readability */}
+        <div className="absolute inset-0 bg-black/30"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Complete Your Profile</h1>
-          <p className="text-[#E9DDFB] text-sm">Help us find your perfect co-living match</p>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-4 drop-shadow-2xl leading-tight" style={{
+            textShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(168, 102, 255, 0.6), 0 4px 8px rgba(0, 0, 0, 0.8)',
+            WebkitTextStroke: '1px rgba(255, 255, 255, 0.3)'
+          }}>Complete Your Profile</h1>
+          <p className="text-white text-base sm:text-lg font-medium drop-shadow-lg" style={{
+            textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 255, 255, 0.3)'
+          }}>Help us find your perfect co-living match</p>
         </div>
 
         {/* Progress Bar - Mobile Optimized */}
@@ -151,18 +183,23 @@ export default function OnboardingPage() {
           <div className="block sm:hidden">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm font-bold text-[#7D3EFF]">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-base font-bold text-[#7D3EFF] shadow-lg">
                   {currentStep + 1}
                 </div>
-                <div className="ml-3">
-                  <div className="text-white font-medium text-sm">{STEPS[currentStep]}</div>
-                  <div className="text-white/70 text-xs">Step {currentStep + 1} of {STEPS.length}</div>
+                <div className="ml-4">
+                  <div className="text-white font-bold text-base" style={{
+                    textShadow: '0 2px 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(255, 255, 255, 0.4)',
+                    WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.3)'
+                  }}>{STEPS[currentStep]}</div>
+                  <div className="text-white font-medium text-sm" style={{
+                    textShadow: '0 2px 6px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 255, 255, 0.3)'
+                  }}>Step {currentStep + 1} of {STEPS.length}</div>
                 </div>
               </div>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-2">
+            <div className="w-full bg-white/30 rounded-full h-3 shadow-inner">
               <div 
-                className="bg-white h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-white to-gray-100 h-3 rounded-full transition-all duration-300 shadow-sm"
                 style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
               />
             </div>
@@ -170,32 +207,39 @@ export default function OnboardingPage() {
 
           {/* Desktop Progress - Full */}
           <div className="hidden sm:block">
-            <div className="flex items-center justify-between mb-4 overflow-x-auto">
+            <div className="flex items-center justify-between mb-4 w-full">
               {STEPS.map((step, index) => (
-                <div key={step} className="flex items-center flex-shrink-0">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    index <= currentStep 
-                      ? 'bg-white text-[#7D3EFF]' 
-                      : 'bg-white/20 text-white/60'
-                  }`}>
-                    {index + 1}
+                <div key={step} className="flex items-center flex-1 justify-center">
+                  <div className="flex items-center">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-base font-bold shadow-lg flex-shrink-0 ${
+                      index <= currentStep 
+                        ? 'bg-white text-[#7D3EFF]' 
+                        : 'bg-white/30 text-white border-2 border-white/50'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    <span className={`ml-3 text-sm lg:text-base font-bold ${
+                      index <= currentStep ? 'text-white' : 'text-white/80'
+                    }`} style={{
+                      textShadow: index <= currentStep 
+                        ? '0 2px 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(255, 255, 255, 0.4), 0 0 40px rgba(168, 102, 255, 0.3)'
+                        : '0 2px 6px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 255, 255, 0.2)',
+                      WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.3)'
+                    }}>
+                      {step}
+                    </span>
                   </div>
-                  <span className={`ml-2 text-sm font-medium whitespace-nowrap ${
-                    index <= currentStep ? 'text-white' : 'text-white/60'
-                  }`}>
-                    {step}
-                  </span>
                   {index < STEPS.length - 1 && (
-                    <div className={`w-8 sm:w-12 h-0.5 mx-2 sm:mx-4 ${
-                      index < currentStep ? 'bg-white' : 'bg-white/20'
+                    <div className={`flex-1 h-1 ml-4 mr-2 rounded-full ${
+                      index < currentStep ? 'bg-gradient-to-r from-white to-gray-100 shadow-sm' : 'bg-white/30'
                     }`} />
                   )}
                 </div>
               ))}
             </div>
-            <div className="w-full bg-white/20 rounded-full h-2">
+            <div className="w-full bg-white/30 rounded-full h-3 shadow-inner">
               <div 
-                className="bg-white h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-white to-gray-100 h-3 rounded-full transition-all duration-300 shadow-sm"
                 style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
               />
             </div>
@@ -204,7 +248,7 @@ export default function OnboardingPage() {
 
         {/* Form Content */}
         <div className="max-w-2xl mx-auto px-4 sm:px-0">
-          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 border border-white/20">
             {renderStepContent()}
 
             {/* Navigation Buttons - Mobile Optimized */}
@@ -244,9 +288,12 @@ export default function OnboardingPage() {
 // Step Components
 function BasicDetailsStep({ formData, updateFormData }: { formData: OnboardingData, updateFormData: (updates: Partial<OnboardingData>) => void }) {
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Basic Details</h2>
-      
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Basic Details</h2>
+        <p className="text-sm sm:text-base text-gray-600">Tell us a bit about yourself</p>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div className="sm:col-span-1">
           <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
@@ -254,7 +301,7 @@ function BasicDetailsStep({ formData, updateFormData }: { formData: OnboardingDa
             type="number"
             value={formData.age}
             onChange={(e) => updateFormData({ age: e.target.value })}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
             placeholder="Enter your age"
             min="18"
             max="100"
@@ -267,30 +314,30 @@ function BasicDetailsStep({ formData, updateFormData }: { formData: OnboardingDa
             type="text"
             value={formData.currentCity}
             onChange={(e) => updateFormData({ currentCity: e.target.value })}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
-            placeholder="e.g., Mumbai, Delhi"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
+            placeholder="e.g., Mumbai"
           />
         </div>
 
-        <div className="sm:col-span-2">
+        <div className="sm:col-span-1">
           <label className="block text-sm font-medium text-gray-700 mb-2">Profession</label>
           <input
             type="text"
             value={formData.profession}
             onChange={(e) => updateFormData({ profession: e.target.value })}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
-            placeholder="e.g., Software Engineer, Designer"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
+            placeholder="e.g., Software Engineer"
           />
         </div>
 
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Preferred City for Co-Living</label>
+        <div className="sm:col-span-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Preferred City</label>
           <input
             type="text"
             value={formData.preferredCity}
             onChange={(e) => updateFormData({ preferredCity: e.target.value })}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
-            placeholder="e.g., Bangalore, Pune"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
+            placeholder="e.g., Bangalore"
           />
         </div>
       </div>
@@ -300,21 +347,23 @@ function BasicDetailsStep({ formData, updateFormData }: { formData: OnboardingDa
 
 function LifestylePreferencesStep({ formData, updateFormData }: { formData: OnboardingData, updateFormData: (updates: Partial<OnboardingData>) => void }) {
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Lifestyle Preferences</h2>
-      
-      <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Lifestyle Preferences</h2>
+        <p className="text-sm sm:text-base text-gray-600">Help us understand your daily habits</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Sleep Schedule</label>
           <select
             value={formData.sleepSchedule}
             onChange={(e) => updateFormData({ sleepSchedule: e.target.value })}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
           >
-            <option value="">Select your sleep schedule</option>
-            <option value="early-bird">Early Bird (Sleep by 10 PM, Wake by 6 AM)</option>
-            <option value="normal">Normal (Sleep by 11 PM, Wake by 7 AM)</option>
-            <option value="night-owl">Night Owl (Sleep after 12 AM, Wake after 8 AM)</option>
+            <option value="">Select sleep schedule</option>
+            <option value="early-bird">Early Bird (Sleep by 10 PM)</option>
+            <option value="night-owl">Night Owl (Sleep after 12 AM)</option>
             <option value="flexible">Flexible</option>
           </select>
         </div>
@@ -324,13 +373,12 @@ function LifestylePreferencesStep({ formData, updateFormData }: { formData: Onbo
           <select
             value={formData.cleanliness}
             onChange={(e) => updateFormData({ cleanliness: e.target.value })}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
           >
-            <option value="">Select cleanliness preference</option>
-            <option value="very-clean">Very Clean (Everything spotless)</option>
-            <option value="clean">Clean (Tidy and organized)</option>
-            <option value="moderate">Moderate (Reasonably clean)</option>
-            <option value="relaxed">Relaxed (Lived-in feel is okay)</option>
+            <option value="">Select cleanliness level</option>
+            <option value="very-clean">Very Clean</option>
+            <option value="moderately-clean">Moderately Clean</option>
+            <option value="casual">Casual</option>
           </select>
         </div>
 
@@ -339,61 +387,57 @@ function LifestylePreferencesStep({ formData, updateFormData }: { formData: Onbo
           <select
             value={formData.guestPolicy}
             onChange={(e) => updateFormData({ guestPolicy: e.target.value })}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
           >
             <option value="">Select guest policy</option>
             <option value="no-guests">No Guests</option>
-            <option value="occasional">Occasional Guests (with notice)</option>
-            <option value="frequent">Frequent Guests Welcome</option>
-            <option value="overnight-ok">Overnight Guests Okay</option>
+            <option value="occasional">Occasional Guests</option>
+            <option value="frequent">Frequent Guests</option>
           </select>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Food Habits</label>
-            <select
-              value={formData.foodHabits}
-              onChange={(e) => updateFormData({ foodHabits: e.target.value })}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
-            >
-              <option value="">Select</option>
-              <option value="vegetarian">Vegetarian</option>
-              <option value="non-vegetarian">Non-Vegetarian</option>
-              <option value="vegan">Vegan</option>
-              <option value="flexible">Flexible</option>
-            </select>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Food Habits</label>
+          <select
+            value={formData.foodHabits}
+            onChange={(e) => updateFormData({ foodHabits: e.target.value })}
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
+          >
+            <option value="">Select food habits</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="non-vegetarian">Non-Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="no-preference">No Preference</option>
+          </select>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Drinking</label>
-            <select
-              value={formData.drinking}
-              onChange={(e) => updateFormData({ drinking: e.target.value })}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
-            >
-              <option value="">Select</option>
-              <option value="never">Never</option>
-              <option value="occasionally">Occasionally</option>
-              <option value="socially">Socially</option>
-              <option value="regularly">Regularly</option>
-            </select>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Drinking</label>
+          <select
+            value={formData.drinking}
+            onChange={(e) => updateFormData({ drinking: e.target.value })}
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
+          >
+            <option value="">Select drinking preference</option>
+            <option value="never">Never</option>
+            <option value="occasionally">Occasionally</option>
+            <option value="socially">Socially</option>
+            <option value="regularly">Regularly</option>
+          </select>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Smoking</label>
-            <select
-              value={formData.smoking}
-              onChange={(e) => updateFormData({ smoking: e.target.value })}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
-            >
-              <option value="">Select</option>
-              <option value="never">Never</option>
-              <option value="occasionally">Occasionally</option>
-              <option value="socially">Socially</option>
-              <option value="regularly">Regularly</option>
-            </select>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Smoking</label>
+          <select
+            value={formData.smoking}
+            onChange={(e) => updateFormData({ smoking: e.target.value })}
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
+          >
+            <option value="">Select smoking preference</option>
+            <option value="never">Never</option>
+            <option value="occasionally">Occasionally</option>
+            <option value="regularly">Regularly</option>
+          </select>
         </div>
       </div>
     </div>
@@ -474,27 +518,25 @@ function PersonalityStyleStep({ formData, updatePersonality }: { formData: Onboa
 
 function RoomPreferencesStep({ formData, updateFormData }: { formData: OnboardingData, updateFormData: (updates: Partial<OnboardingData>) => void }) {
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Room Preferences</h2>
-      
-      <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Room Preferences</h2>
+        <p className="text-sm sm:text-base text-gray-600">What's your ideal living space?</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">Room Type</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {['Single Room', 'Twin Sharing'].map((type) => (
-              <button
-                key={type}
-                onClick={() => updateFormData({ roomType: type })}
-                className={`p-4 border-2 rounded-lg text-center font-medium transition-all touch-manipulation ${
-                  formData.roomType === type
-                    ? 'border-[#7D3EFF] bg-[#7D3EFF]/10 text-[#7D3EFF]'
-                    : 'border-gray-200 text-gray-700 hover:border-[#7D3EFF] bg-white'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Room Type</label>
+          <select
+            value={formData.roomType}
+            onChange={(e) => updateFormData({ roomType: e.target.value })}
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
+          >
+            <option value="">Select room type</option>
+            <option value="single">Single Room</option>
+            <option value="twin-sharing">Twin Sharing</option>
+            <option value="no-preference">No Preference</option>
+          </select>
         </div>
 
         <div>
@@ -502,7 +544,7 @@ function RoomPreferencesStep({ formData, updateFormData }: { formData: Onboardin
           <select
             value={formData.floorPreference}
             onChange={(e) => updateFormData({ floorPreference: e.target.value })}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
           >
             <option value="">Select floor preference</option>
             <option value="ground">Ground Floor</option>
@@ -513,36 +555,34 @@ function RoomPreferencesStep({ formData, updateFormData }: { formData: Onboardin
           </select>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Window Preference</label>
-            <select
-              value={formData.windowPreference}
-              onChange={(e) => updateFormData({ windowPreference: e.target.value })}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
-            >
-              <option value="">Select preference</option>
-              <option value="lots-of-windows">Lots of Windows</option>
-              <option value="some-windows">Some Windows</option>
-              <option value="minimal-windows">Minimal Windows</option>
-              <option value="no-preference">No Preference</option>
-            </select>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Window Preference</label>
+          <select
+            value={formData.windowPreference}
+            onChange={(e) => updateFormData({ windowPreference: e.target.value })}
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
+          >
+            <option value="">Select window preference</option>
+            <option value="lots-of-windows">Lots of Windows</option>
+            <option value="some-windows">Some Windows</option>
+            <option value="minimal-windows">Minimal Windows</option>
+            <option value="no-preference">No Preference</option>
+          </select>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Light Preference</label>
-            <select
-              value={formData.lightPreference}
-              onChange={(e) => updateFormData({ lightPreference: e.target.value })}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation"
-            >
-              <option value="">Select preference</option>
-              <option value="bright">Bright & Airy</option>
-              <option value="moderate">Moderate Light</option>
-              <option value="dim">Dim & Cozy</option>
-              <option value="no-preference">No Preference</option>
-            </select>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Natural Light</label>
+          <select
+            value={formData.lightPreference}
+            onChange={(e) => updateFormData({ lightPreference: e.target.value })}
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7D3EFF] focus:border-[#7D3EFF] outline-none touch-manipulation text-gray-900 bg-white"
+          >
+            <option value="">Select light preference</option>
+            <option value="bright">Bright & Airy</option>
+            <option value="moderate">Moderate Light</option>
+            <option value="dim">Dim & Cozy</option>
+            <option value="no-preference">No Preference</option>
+          </select>
         </div>
       </div>
     </div>
