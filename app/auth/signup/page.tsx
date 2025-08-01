@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '../../contexts/ProfileContext';
+import { createUserWithEmailAndPassword, updateProfile as updateFirebaseProfile } from 'firebase/auth';
+import { auth } from '../../firebase/config';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -45,22 +47,41 @@ export default function SignupPage() {
     }
 
     try {
-      // Update profile with basic signup info
+      // Create user with Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const user = userCredential.user;
+
+      // Update Firebase user profile with display name
+      await updateFirebaseProfile(user, {
+        displayName: formData.name
+      });
+
+      // Update local profile context with signup info
       updateProfile({
         name: formData.name,
         email: formData.email,
+        phone: formData.phone,
         profileCompletion: 25, // Basic info completed
+        uid: user.uid
       });
       
-      console.log('Signup attempt:', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('User created successfully:', user.uid);
       
       // Redirect to onboarding after successful signup
       router.push('/onboarding');
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
+    } catch (err: any) {
+      console.error('Signup error:', err);
+      
+      // Handle specific Firebase errors
+      if (err.code === 'auth/email-already-in-use') {
+        setError('An account with this email already exists');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password is too weak. Please choose a stronger password');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Invalid email address');
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

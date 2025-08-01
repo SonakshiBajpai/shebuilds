@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '../contexts/ProfileContext';
 import VoicePreferenceForm from '../../components/VoicePreferenceForm';
+import { db, auth } from '../firebase/config';
+import { doc, setDoc } from 'firebase/firestore';
 
 interface OnboardingData {
   // Basic Details
@@ -109,17 +111,44 @@ export default function OnboardingPage() {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      // Save onboarding data to profile context
+      // Save onboarding data to profile context (existing functionality)
       updateFromOnboarding(formData);
       console.log('Onboarding data saved:', formData);
       
-      // Simulate API call
+      // Try to save to Firebase Firestore (optional - won't block if it fails)
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          // Prepare the payload by adding onboarded: true and timestamp
+          const onboardingPayload = {
+            ...formData,
+            onboarded: true,
+            timestamp: Date.now(),
+            completedAt: new Date().toISOString()
+          };
+          
+          // Write/merge the object under users/{uid} in Firebase Firestore Database
+          const userRef = doc(db, 'users', currentUser.uid);
+          await setDoc(userRef, onboardingPayload);
+          
+          console.log('✅ Onboarding data saved to Firebase Firestore for user:', currentUser.uid);
+        } else {
+          console.warn('⚠️ No authenticated user found, skipping Firebase Database save');
+        }
+      } catch (firebaseError) {
+        console.warn('⚠️ Firebase save failed (but continuing):', firebaseError);
+        // Continue with the process even if Firebase fails
+      }
+      
+      // Simulate API call (existing functionality)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Redirect to dashboard
+      // Redirect to dashboard (existing functionality)
       router.push('/dashboard');
     } catch (error) {
-      console.error('Error submitting onboarding data:', error);
+      console.error('❌ Error submitting onboarding data:', error);
+      // Still redirect to dashboard even if there's an error
+      router.push('/dashboard');
     } finally {
       setIsLoading(false);
     }

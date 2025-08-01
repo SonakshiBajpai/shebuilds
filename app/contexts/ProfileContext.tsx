@@ -41,6 +41,8 @@ interface UserProfile extends OnboardingData {
   id: string;
   name: string;
   email: string;
+  phone?: string;
+  uid?: string;
   profilePicture: string;
   joinDate: string;
   profileCompletion: number;

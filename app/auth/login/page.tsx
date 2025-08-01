@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProfile } from '../../contexts/ProfileContext';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../firebase/config';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,11 +21,11 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // TODO: Implement actual login logic
-      console.log('Login attempt:', { email, password });
+      // Sign in with Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('User signed in successfully:', user.uid);
       
       // Redirect based on profile completion
       if (profile && profile.profileCompletion >= 100) {
@@ -31,8 +33,19 @@ export default function LoginPage() {
       } else {
         router.push('/onboarding');
       }
-    } catch (err) {
-      setError('Invalid email or password');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      
+      // Handle specific Firebase errors
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setError('Invalid email or password');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Invalid email address');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please try again later');
+      } else {
+        setError('Invalid email or password');
+      }
     } finally {
       setIsLoading(false);
     }
