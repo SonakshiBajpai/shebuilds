@@ -126,9 +126,9 @@ export default function SafetyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-poppins">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
+      {/* Header - Floating */}
+      <div className="bg-white/90 backdrop-blur-md rounded-2xl mx-4 mt-6 mb-2 shadow-xl border border-white/30 sticky top-6 z-40">
+        <div className="px-6 py-4">
           <div className="flex items-center space-x-4">
             <Link 
               href="/dashboard"

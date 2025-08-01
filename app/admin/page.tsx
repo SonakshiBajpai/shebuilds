@@ -134,6 +134,15 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedTimeRange, setSelectedTimeRange] = useState('7d');
+  const [conflictData, setConflictData] = useState([
+    { month: 'Jul', conflicts: 12, resolved: 11, timestamp: Date.now() - 6 * 30 * 24 * 60 * 60 * 1000 },
+    { month: 'Aug', conflicts: 8, resolved: 8, timestamp: Date.now() - 5 * 30 * 24 * 60 * 60 * 1000 },
+    { month: 'Sep', conflicts: 15, resolved: 13, timestamp: Date.now() - 4 * 30 * 24 * 60 * 60 * 1000 },
+    { month: 'Oct', conflicts: 6, resolved: 6, timestamp: Date.now() - 3 * 30 * 24 * 60 * 60 * 1000 },
+    { month: 'Nov', conflicts: 10, resolved: 9, timestamp: Date.now() - 2 * 30 * 24 * 60 * 60 * 1000 },
+    { month: 'Dec', conflicts: 4, resolved: 4, timestamp: Date.now() - 1 * 30 * 24 * 60 * 60 * 1000 },
+    { month: 'Jan', conflicts: 7, resolved: 6, timestamp: Date.now() }
+  ]);
 
   // Mock authentication check
   useEffect(() => {
@@ -151,6 +160,31 @@ export default function AdminDashboard() {
     };
 
     checkAuth();
+  }, []);
+
+  // Real-time data updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setConflictData(prevData => {
+        const newData = [...prevData];
+        // Simulate real-time updates by slightly modifying the last data point
+        const lastIndex = newData.length - 1;
+        const randomChange = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+        const newConflicts = Math.max(0, newData[lastIndex].conflicts + randomChange);
+        const newResolved = Math.min(newConflicts, newData[lastIndex].resolved + Math.floor(Math.random() * 2));
+        
+        newData[lastIndex] = {
+          ...newData[lastIndex],
+          conflicts: newConflicts,
+          resolved: newResolved,
+          timestamp: Date.now()
+        };
+        
+        return newData;
+      });
+    }, 3000); // Update every 3 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   if (isLoading) {
@@ -188,21 +222,32 @@ export default function AdminDashboard() {
     );
   }
 
-  const conflictData = [
-    { month: 'Jul', conflicts: 12, resolved: 11 },
-    { month: 'Aug', conflicts: 8, resolved: 8 },
-    { month: 'Sep', conflicts: 15, resolved: 13 },
-    { month: 'Oct', conflicts: 6, resolved: 6 },
-    { month: 'Nov', conflicts: 10, resolved: 9 },
-    { month: 'Dec', conflicts: 4, resolved: 4 },
-    { month: 'Jan', conflicts: 7, resolved: 6 }
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 font-poppins">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen relative font-poppins">
+      {/* Background Images - Responsive */}
+      {/* Desktop Background */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
+        style={{
+          backgroundImage: "url('/dashboard-background.jpg')"
+        }}
+      >
+        <div className="absolute inset-0 bg-black/10"></div>
+      </div>
+      
+      {/* Mobile Background */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat block md:hidden"
+        style={{
+          backgroundImage: "url('/auth-background.jpg')"
+        }}
+      >
+        <div className="absolute inset-0 bg-black/20"></div>
+      </div>
+
+      {/* Header - Floating */}
+      <div className="relative z-10 bg-white/90 backdrop-blur-md rounded-2xl mx-4 mt-6 mb-2 shadow-xl border border-white/30 sticky top-6 z-40">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link 
@@ -221,16 +266,16 @@ export default function AdminDashboard() {
             
             <div className="flex items-center space-x-3">
               <div className="hidden sm:block">
-                                 <select
-                   value={selectedTimeRange}
-                   onChange={(e) => setSelectedTimeRange(e.target.value)}
-                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#7D3EFF] focus:border-transparent text-gray-900 bg-white"
-                 >
-                  <option value="24h">Last 24 Hours</option>
-                  <option value="7d">Last 7 Days</option>
-                  <option value="30d">Last 30 Days</option>
-                  <option value="90d">Last 90 Days</option>
-                </select>
+                <select
+                  value={selectedTimeRange}
+                  onChange={(e) => setSelectedTimeRange(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#7D3EFF] focus:border-transparent text-gray-900 bg-white"
+                >
+                 <option value="24h">Last 24 Hours</option>
+                 <option value="7d">Last 7 Days</option>
+                 <option value="30d">Last 30 Days</option>
+                 <option value="90d">Last 90 Days</option>
+               </select>
               </div>
               <div className="w-8 h-8 bg-[#7D3EFF] rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-bold">A</span>
@@ -241,15 +286,35 @@ export default function AdminDashboard() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="relative z-10 bg-white/95 backdrop-blur-md border-b border-white/20 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex space-x-8 overflow-x-auto">
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'audit', label: 'Audit Logs', icon: '📋' },
-              { id: 'rooms', label: 'Room Management', icon: '🏠' },
-              { id: 'emergency', label: 'Emergency Alerts', icon: '🚨' },
-              { id: 'analytics', label: 'Analytics', icon: '📈' }
+              { id: 'overview', label: 'Overview', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              ) },
+              { id: 'audit', label: 'Audit Logs', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              ) },
+              { id: 'rooms', label: 'Room Management', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8v-4a1 1 0 011-1h2a1 1 0 011 1v4m-4 0h4" />
+                </svg>
+              ) },
+              { id: 'emergency', label: 'Emergency Alerts', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              ) },
+              { id: 'analytics', label: 'Analytics', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+              ) }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -260,7 +325,7 @@ export default function AdminDashboard() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <span>{tab.icon}</span>
+                {tab.icon}
                 <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}
@@ -268,13 +333,13 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="relative z-10 container mx-auto px-4 py-6">
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Users</p>
@@ -289,7 +354,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Active Rooms</p>
@@ -304,7 +369,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Safety Alerts</p>
@@ -319,7 +384,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Revenue</p>
@@ -335,13 +400,13 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
+            {/* Recent Activity - Desktop Optimized */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Recent User Activity</h3>
                 <div className="space-y-3">
                   {mockAuditLogs.slice(0, 5).map((log) => (
-                    <div key={log.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                    <div key={log.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/50 transition-colors">
                       <div className={`w-2 h-2 rounded-full ${
                         log.severity === 'high' ? 'bg-red-500' : 
                         log.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
@@ -358,11 +423,11 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Emergency Alerts Status</h3>
                 <div className="space-y-3">
                   {mockEmergencyAlerts.map((alert) => (
-                    <div key={alert.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50">
+                    <div key={alert.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/50 transition-colors">
                       <div className={`w-3 h-3 rounded-full ${
                         alert.status === 'resolved' ? 'bg-green-500' : 
                         alert.status === 'investigating' ? 'bg-yellow-500' : 'bg-red-500'
@@ -384,12 +449,12 @@ export default function AdminDashboard() {
 
         {/* Audit Logs Tab */}
         {activeTab === 'audit' && (
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-white/30 overflow-hidden">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-900">User Audit Log</h2>
                 <div className="flex space-x-3">
-                                     <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#7D3EFF] focus:border-transparent text-gray-900 bg-white">
+                  <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#7D3EFF] focus:border-transparent text-gray-900 bg-white">
                     <option>All Actions</option>
                     <option>Profile Updates</option>
                     <option>Bookings</option>
@@ -465,9 +530,9 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {mockRoomAssignments.map((room) => (
-                <div key={room.id} className="bg-white rounded-2xl p-6 shadow-lg">
+                <div key={room.id} className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-gray-900">{room.roomNumber}</h3>
                     <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
@@ -525,7 +590,7 @@ export default function AdminDashboard() {
 
         {/* Emergency Alerts Tab */}
         {activeTab === 'emergency' && (
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-white/30 overflow-hidden">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-900">Emergency Alert Board</h2>
@@ -602,61 +667,197 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-gray-900">Conflict Trend Analysis</h2>
             
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Monthly Conflict Resolution</h3>
                 <div className="flex items-center space-x-4 text-sm">
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-[#A866FF] to-[#FF6B9D]"></div>
                     <span>Total Conflicts</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-[#7D3EFF] to-[#4F46E5]"></div>
                     <span>Resolved</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-gray-500">Real-time updates</span>
                   </div>
                 </div>
               </div>
 
-              {/* Mock Chart */}
+              {/* Dynamic Line Chart */}
               <div className="relative h-64">
-                <div className="absolute inset-0 flex items-end justify-between space-x-2">
-                  {conflictData.map((data, index) => (
-                    <div key={index} className="flex-1 flex flex-col items-center space-y-2">
-                      <div className="w-full flex flex-col space-y-1">
-                        <div 
-                          className="bg-red-500 w-full rounded-t"
-                          style={{ height: `${(data.conflicts / 20) * 200}px` }}
-                        ></div>
-                        <div 
-                          className="bg-green-500 w-full"
-                          style={{ height: `${(data.resolved / 20) * 200}px` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-gray-500">{data.month}</span>
-                    </div>
+                <svg className="w-full h-full" viewBox="0 0 800 240">
+                  {/* Grid Lines */}
+                  {[0, 1, 2, 3, 4].map((line) => (
+                    <line
+                      key={line}
+                      x1="60"
+                      y1={60 + (line * 40)}
+                      x2="740"
+                      y2={60 + (line * 40)}
+                      stroke="#f3f4f6"
+                      strokeWidth="1"
+                      opacity="0.5"
+                    />
                   ))}
-                </div>
+                  
+                  {/* Y-axis labels */}
+                  {[20, 15, 10, 5, 0].map((value, index) => (
+                    <text
+                      key={value}
+                      x="50"
+                      y={65 + (index * 40)}
+                      className="text-xs fill-gray-500"
+                      textAnchor="end"
+                    >
+                      {value}
+                    </text>
+                  ))}
+
+                  {/* Gradient Definitions */}
+                  <defs>
+                    <linearGradient id="conflictsGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#A866FF" stopOpacity="0.8"/>
+                      <stop offset="100%" stopColor="#A866FF" stopOpacity="0.1"/>
+                    </linearGradient>
+                    <linearGradient id="resolvedGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#7D3EFF" stopOpacity="0.8"/>
+                      <stop offset="100%" stopColor="#7D3EFF" stopOpacity="0.1"/>
+                    </linearGradient>
+                    <linearGradient id="conflictsLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#A866FF"/>
+                      <stop offset="100%" stopColor="#FF6B9D"/>
+                    </linearGradient>
+                    <linearGradient id="resolvedLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#7D3EFF"/>
+                      <stop offset="100%" stopColor="#4F46E5"/>
+                    </linearGradient>
+                  </defs>
+
+                  {/* Area fills */}
+                  <path
+                    d={`M 60 ${260 - (conflictData[0].conflicts / 20) * 200} ${conflictData.map((data, index) => {
+                      const x = 60 + (index * (680 / (conflictData.length - 1)));
+                      const y = 260 - (data.conflicts / 20) * 200;
+                      return `L ${x} ${y}`;
+                    }).join(' ')} L 740 260 L 60 260 Z`}
+                    fill="url(#conflictsGradient)"
+                    className="transition-all duration-1000 ease-in-out"
+                  />
+                  
+                  <path
+                    d={`M 60 ${260 - (conflictData[0].resolved / 20) * 200} ${conflictData.map((data, index) => {
+                      const x = 60 + (index * (680 / (conflictData.length - 1)));
+                      const y = 260 - (data.resolved / 20) * 200;
+                      return `L ${x} ${y}`;
+                    }).join(' ')} L 740 260 L 60 260 Z`}
+                    fill="url(#resolvedGradient)"
+                    className="transition-all duration-1000 ease-in-out"
+                  />
+
+                  {/* Line paths */}
+                  <path
+                    d={`M 60 ${260 - (conflictData[0].conflicts / 20) * 200} ${conflictData.map((data, index) => {
+                      const x = 60 + (index * (680 / (conflictData.length - 1)));
+                      const y = 260 - (data.conflicts / 20) * 200;
+                      return `L ${x} ${y}`;
+                    }).join(' ')}`}
+                    fill="none"
+                    stroke="url(#conflictsLine)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="transition-all duration-1000 ease-in-out"
+                  />
+                  
+                  <path
+                    d={`M 60 ${260 - (conflictData[0].resolved / 20) * 200} ${conflictData.map((data, index) => {
+                      const x = 60 + (index * (680 / (conflictData.length - 1)));
+                      const y = 260 - (data.resolved / 20) * 200;
+                      return `L ${x} ${y}`;
+                    }).join(' ')}`}
+                    fill="none"
+                    stroke="url(#resolvedLine)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="transition-all duration-1000 ease-in-out"
+                  />
+
+                  {/* Data points */}
+                  {conflictData.map((data, index) => {
+                    const x = 60 + (index * (680 / (conflictData.length - 1)));
+                    const conflictsY = 260 - (data.conflicts / 20) * 200;
+                    const resolvedY = 260 - (data.resolved / 20) * 200;
+                    
+                    return (
+                      <g key={index}>
+                        {/* Conflicts point */}
+                        <circle
+                          cx={x}
+                          cy={conflictsY}
+                          r="4"
+                          fill="#A866FF"
+                          stroke="white"
+                          strokeWidth="2"
+                          className="transition-all duration-1000 ease-in-out hover:r-6"
+                        />
+                        {/* Resolved point */}
+                        <circle
+                          cx={x}
+                          cy={resolvedY}
+                          r="4"
+                          fill="#7D3EFF"
+                          stroke="white"
+                          strokeWidth="2"
+                          className="transition-all duration-1000 ease-in-out hover:r-6"
+                        />
+                        {/* X-axis labels */}
+                        <text
+                          x={x}
+                          y="280"
+                          className="text-xs fill-gray-500"
+                          textAnchor="middle"
+                        >
+                          {data.month}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {/* Real-time indicator */}
+                  <circle
+                    cx="720"
+                    cy="20"
+                    r="4"
+                    fill="#10B981"
+                    className="animate-pulse"
+                  />
+                  <text x="730" y="25" className="text-xs fill-gray-600">Live</text>
+                </svg>
               </div>
 
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-center p-4 bg-gray-50/50 rounded-lg">
                   <p className="text-2xl font-bold text-gray-900">94%</p>
                   <p className="text-sm text-gray-600">Resolution Rate</p>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-center p-4 bg-gray-50/50 rounded-lg">
                   <p className="text-2xl font-bold text-gray-900">2.3 days</p>
                   <p className="text-sm text-gray-600">Avg Resolution Time</p>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-center p-4 bg-gray-50/50 rounded-lg">
                   <p className="text-2xl font-bold text-gray-900">62</p>
                   <p className="text-sm text-gray-600">Total Conflicts (6 months)</p>
                 </div>
               </div>
             </div>
 
-            {/* Additional Analytics */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
+            {/* Additional Analytics - Desktop Optimized */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Common Conflict Types</h3>
                 <div className="space-y-3">
                   {[
@@ -681,7 +882,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/30">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Resolution Methods</h3>
                 <div className="space-y-3">
                   {[

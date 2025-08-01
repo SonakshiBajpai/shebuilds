@@ -8,6 +8,7 @@ interface OnboardingData {
   currentCity: string;
   profession: string;
   preferredCity: string;
+  profilePicture: string;
   
   // Lifestyle Preferences
   sleepSchedule: string;
@@ -83,7 +84,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       id: 'user_' + Date.now(),
       name: 'User',
       email: 'user@example.com',
-      profilePicture: '/api/placeholder/150/150',
+      profilePicture: '',
       joinDate: new Date().toISOString(),
       profileCompletion: 15, // Basic info only
       isVerified: false,
@@ -126,7 +127,25 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     updatedProfile.profileCompletion = calculateProfileCompletion(updatedProfile);
     
     setProfile(updatedProfile);
-    localStorage.setItem('ellemate_profile', JSON.stringify(updatedProfile));
+    
+    try {
+      localStorage.setItem('ellemate_profile', JSON.stringify(updatedProfile));
+    } catch (error) {
+      console.error('Error saving profile to localStorage:', error);
+      
+      // If localStorage quota exceeded, try saving without profile picture
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        console.warn('LocalStorage quota exceeded. Saving profile without picture.');
+        const profileWithoutPicture = { ...updatedProfile, profilePicture: '' };
+        try {
+          localStorage.setItem('ellemate_profile', JSON.stringify(profileWithoutPicture));
+          // Update the state to reflect that picture wasn't saved
+          setProfile(profileWithoutPicture);
+        } catch (fallbackError) {
+          console.error('Failed to save even without profile picture:', fallbackError);
+        }
+      }
+    }
   };
 
   const updateFromOnboarding = (onboardingData: OnboardingData) => {
@@ -140,7 +159,25 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     };
     
     setProfile(updatedProfile);
-    localStorage.setItem('ellemate_profile', JSON.stringify(updatedProfile));
+    
+    try {
+      localStorage.setItem('ellemate_profile', JSON.stringify(updatedProfile));
+    } catch (error) {
+      console.error('Error saving profile to localStorage:', error);
+      
+      // If localStorage quota exceeded, try saving without profile picture
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        console.warn('LocalStorage quota exceeded. Saving profile without picture.');
+        const profileWithoutPicture = { ...updatedProfile, profilePicture: '' };
+        try {
+          localStorage.setItem('ellemate_profile', JSON.stringify(profileWithoutPicture));
+          // Update the state to reflect that picture wasn't saved
+          setProfile(profileWithoutPicture);
+        } catch (fallbackError) {
+          console.error('Failed to save even without profile picture:', fallbackError);
+        }
+      }
+    }
   };
 
   const uploadProfilePicture = async (file: File): Promise<string> => {

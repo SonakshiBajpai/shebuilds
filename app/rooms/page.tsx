@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 // Mock rooms data
@@ -17,7 +17,7 @@ const mockRooms = [
     rent: 25000,
     deposit: 50000,
     amenities: ["Private Bathroom", "Study Desk", "Wardrobe", "AC", "Balcony Access"],
-    images: ["/api/placeholder/400/300", "/api/placeholder/400/300"],
+    images: ["/room9.jpg", "/room9.jpg"],
     availability: "Available Now",
     description: "Spacious single room with excellent natural light and city view. Perfect for professionals who value privacy and comfort.",
     features: {
@@ -42,7 +42,7 @@ const mockRooms = [
     rent: 15000,
     deposit: 30000,
     amenities: ["Shared Bathroom", "Study Area", "Wardrobe", "Fan", "Common Balcony"],
-    images: ["/api/placeholder/400/300", "/api/placeholder/400/300"],
+    images: ["/room6.jpg", "/room6.jpg"],
     availability: "Available from Jan 15",
     description: "Comfortable twin sharing room ideal for building friendships while maintaining personal space.",
     features: {
@@ -67,7 +67,7 @@ const mockRooms = [
     rent: 32000,
     deposit: 64000,
     amenities: ["Private Bathroom", "Study Desk", "Walk-in Closet", "AC", "Private Balcony", "City View"],
-    images: ["/api/placeholder/400/300", "/api/placeholder/400/300"],
+    images: ["/room10.jpg", "/room10.jpg"],
     availability: "Available Now",
     description: "Premium single room with stunning city views and luxury amenities. Perfect for those who want the best.",
     features: {
@@ -92,7 +92,7 @@ const mockRooms = [
     rent: 12000,
     deposit: 24000,
     amenities: ["Shared Bathroom", "Study Corner", "Wardrobe", "Fan", "Garden Access"],
-    images: ["/api/placeholder/400/300", "/api/placeholder/400/300"],
+    images: ["/room7.jpg", "/room7.jpg"],
     availability: "Available from Feb 1",
     description: "Affordable twin sharing room with direct garden access. Great for nature lovers on a budget.",
     features: {
@@ -117,7 +117,7 @@ const mockRooms = [
     rent: 28000,
     deposit: 56000,
     amenities: ["Private Bathroom", "Work Station", "Walk-in Closet", "AC", "Sunset View"],
-    images: ["/api/placeholder/400/300", "/api/placeholder/400/300"],
+    images: ["/room8.jpg", "/room8.jpg"],
     availability: "Available Now",
     description: "Executive single room with beautiful sunset views and professional workspace setup.",
     features: {
@@ -129,6 +129,31 @@ const mockRooms = [
     location: "Whitefield, Bangalore",
     nearbyFacilities: ["IT Hub - 5 min", "Mall - 15 min", "Airport - 45 min"],
     isRecommended: true
+  },
+  {
+    id: 6,
+    title: "Premium Twin Sharing - Central Wing",
+    type: "Twin Sharing",
+    floor: 4,
+    floorType: "Mid Floor",
+    window: "Large Central Courtyard View",
+    windowType: "lots-of-windows",
+    lightType: "bright",
+    rent: 18000,
+    deposit: 36000,
+    amenities: ["Shared Bathroom", "Study Desks", "Individual Wardrobes", "AC", "Balcony", "WiFi"],
+    images: ["/room11.jpg", "/room11.jpg"],
+    availability: "Available Now",
+    description: "Premium twin sharing room with modern amenities and excellent natural light. Perfect for students and young professionals.",
+    features: {
+      area: "140 sq ft",
+      furnished: true,
+      parking: "Available",
+      wifi: "High-speed included"
+    },
+    location: "Koramangala, Bangalore",
+    nearbyFacilities: ["Metro Station - 3 min", "University - 10 min", "Food Court - 5 min"],
+    isRecommended: false
   }
 ];
 
@@ -150,6 +175,20 @@ export default function RoomsPage() {
     floor: 'all',
     availability: 'all'
   });
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (showFilters || showInterestModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup function to restore scroll when component unmounts
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showFilters, showInterestModal]);
 
   const handleExpressInterest = (room: typeof mockRooms[0]) => {
     setSelectedRoom(room);
@@ -194,10 +233,31 @@ export default function RoomsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-poppins">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen relative font-poppins">
+      {/* Background Images - Responsive */}
+      {/* Desktop Background */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat hidden md:block"
+        style={{
+          backgroundImage: "url('/dashboard-background.jpg')"
+        }}
+      >
+        <div className="absolute inset-0 bg-black/15"></div>
+      </div>
+      
+      {/* Mobile Background */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat block md:hidden"
+        style={{
+          backgroundImage: "url('/auth-background.jpg')"
+        }}
+      >
+        <div className="absolute inset-0 bg-black/20"></div>
+      </div>
+
+      {/* Header - Floating */}
+      <div className="relative z-10 bg-white/90 backdrop-blur-md rounded-2xl mx-4 mt-6 mb-2 shadow-xl border border-white/30 sticky top-6 z-40">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link 
@@ -233,7 +293,7 @@ export default function RoomsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="relative z-10 container mx-auto px-4 py-6">
         {/* Recommended Rooms */}
         {rooms.some(room => room.isRecommended) && (
           <div className="mb-8">
@@ -280,8 +340,18 @@ export default function RoomsPage() {
 
       {/* Filters Modal */}
       {showFilters && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowFilters(false);
+            }
+          }}
+          onTouchMove={(e) => e.preventDefault()}
+        >
+          <div 
+            className="bg-white/95 backdrop-blur-md rounded-t-3xl sm:rounded-2xl w-full max-w-md max-h-[85vh] sm:max-h-[80vh] overflow-y-auto shadow-2xl border-t border-white/20 sm:border border-white/30"
+          >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Filter Rooms</h2>
@@ -397,8 +467,8 @@ export default function RoomsPage() {
 
       {/* Express Interest Modal */}
       {showInterestModal && selectedRoom && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl w-full max-w-md p-6 shadow-2xl border border-white/20">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Express Interest</h2>
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900">{selectedRoom.title}</h3>
@@ -471,12 +541,38 @@ function RoomCard({
       )}
       
       {/* Room Image */}
-      <div className="h-48 bg-gradient-to-br from-[#A866FF] to-[#6F3CFF] flex items-center justify-center">
-        <div className="text-white text-center">
-          <svg className="w-16 h-16 mx-auto mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8v-4a1 1 0 011-1h2a1 1 0 011 1v4m-4 0h4" />
-          </svg>
-          <p className="text-sm opacity-80">{room.type}</p>
+      <div className="h-48 relative overflow-hidden bg-gray-100">
+        <img 
+          src={room.images[0]} 
+          alt={room.title}
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const parent = target.parentElement;
+            if (parent) {
+              parent.innerHTML = `
+                <div class="w-full h-full bg-gradient-to-br from-[#A866FF] to-[#6F3CFF] flex items-center justify-center">
+                  <div class="text-white text-center">
+                    <svg class="w-16 h-16 mx-auto mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8v-4a1 1 0 011-1h2a1 1 0 011 1v4m-4 0h4" />
+                    </svg>
+                    <p class="text-sm opacity-80">${room.type}</p>
+                  </div>
+                </div>
+                <div class="absolute top-3 right-3">
+                  <span class="bg-white/90 backdrop-blur-sm text-[#7D3EFF] text-xs font-semibold px-2 py-1 rounded-full">
+                    ${room.type}
+                  </span>
+                </div>
+              `;
+            }
+          }}
+        />
+        <div className="absolute top-3 right-3">
+          <span className="bg-white/90 backdrop-blur-sm text-[#7D3EFF] text-xs font-semibold px-2 py-1 rounded-full">
+            {room.type}
+          </span>
         </div>
       </div>
 
