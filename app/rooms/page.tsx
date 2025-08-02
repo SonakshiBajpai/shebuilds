@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useProfile } from '../contexts/ProfileContext';
 
 // Mock rooms data
 const mockRooms = [
@@ -154,6 +155,232 @@ const mockRooms = [
     location: "Koramangala, Bangalore",
     nearbyFacilities: ["Metro Station - 3 min", "University - 10 min", "Food Court - 5 min"],
     isRecommended: false
+  },
+  // Additional rooms for different cities and preferences
+  {
+    id: 7,
+    title: "Modern Single Room - Mumbai Central",
+    type: "Single Room",
+    floor: 6,
+    floorType: "High Floor",
+    window: "City View Windows",
+    windowType: "lots-of-windows",
+    lightType: "bright",
+    rent: 35000,
+    deposit: 70000,
+    amenities: ["Private Bathroom", "Work Desk", "Wardrobe", "AC", "WiFi", "Gym Access"],
+    images: ["/room1.jpg", "/room1.jpg"],
+    availability: "Available Now",
+    description: "Modern single room in the heart of Mumbai with excellent connectivity and city views.",
+    features: {
+      area: "160 sq ft",
+      furnished: true,
+      parking: "Available",
+      wifi: "High-speed included"
+    },
+    location: "Andheri, Mumbai",
+    nearbyFacilities: ["Metro - 2 min", "Airport - 30 min", "Mall - 5 min"],
+    isRecommended: false
+  },
+  {
+    id: 8,
+    title: "Budget Twin Sharing - Delhi",
+    type: "Twin Sharing",
+    floor: 1,
+    floorType: "Ground Floor",
+    window: "Garden Facing",
+    windowType: "some-windows",
+    lightType: "moderate",
+    rent: 18000,
+    deposit: 36000,
+    amenities: ["Shared Bathroom", "Study Area", "Wardrobe", "Fan", "WiFi"],
+    images: ["/room2.jpg", "/room2.jpg"],
+    availability: "Available from Feb 5",
+    description: "Affordable twin sharing room in Delhi with garden access and peaceful environment.",
+    features: {
+      area: "110 sq ft",
+      furnished: true,
+      parking: "Limited",
+      wifi: "Standard included"
+    },
+    location: "Lajpat Nagar, Delhi",
+    nearbyFacilities: ["Metro - 5 min", "Market - 3 min", "Hospital - 10 min"],
+    isRecommended: false
+  },
+  {
+    id: 12,
+    title: "Premium Single Room - Delhi Central",
+    type: "Single Room",
+    floor: 5,
+    floorType: "Mid Floor",
+    window: "Large Windows",
+    windowType: "lots-of-windows",
+    lightType: "bright",
+    rent: 28000,
+    deposit: 56000,
+    amenities: ["Private Bathroom", "Work Desk", "Wardrobe", "AC", "Balcony"],
+    images: ["/room7.jpg", "/room7.jpg"],
+    availability: "Available Now",
+    description: "Premium single room in central Delhi with excellent connectivity and modern amenities.",
+    features: {
+      area: "140 sq ft",
+      furnished: true,
+      parking: "Available",
+      wifi: "High-speed included"
+    },
+    location: "Connaught Place, Delhi",
+    nearbyFacilities: ["Metro - 2 min", "Mall - 5 min", "Office Hub - 10 min"],
+    isRecommended: false
+  },
+  {
+    id: 13,
+    title: "Modern Twin Sharing - Delhi",
+    type: "Twin Sharing",
+    floor: 3,
+    floorType: "Mid Floor",
+    window: "East-facing Windows",
+    windowType: "lots-of-windows",
+    lightType: "bright",
+    rent: 20000,
+    deposit: 40000,
+    amenities: ["Shared Bathroom", "Study Desks", "Wardrobes", "AC", "WiFi"],
+    images: ["/room8.jpg", "/room8.jpg"],
+    availability: "Available Now",
+    description: "Modern twin sharing room in Delhi with great natural light and contemporary design.",
+    features: {
+      area: "125 sq ft",
+      furnished: true,
+      parking: "Available",
+      wifi: "High-speed included"
+    },
+    location: "Karol Bagh, Delhi",
+    nearbyFacilities: ["Metro - 3 min", "Market - 5 min", "Hospital - 8 min"],
+    isRecommended: false
+  },
+  {
+    id: 14,
+    title: "Luxury Single Room - Delhi South",
+    type: "Single Room",
+    floor: 7,
+    floorType: "High Floor",
+    window: "Panoramic Windows",
+    windowType: "lots-of-windows",
+    lightType: "bright",
+    rent: 32000,
+    deposit: 64000,
+    amenities: ["Private Bathroom", "Work Station", "Walk-in Closet", "AC", "City View"],
+    images: ["/room9.jpg", "/room9.jpg"],
+    availability: "Available Now",
+    description: "Luxury single room in South Delhi with panoramic city views and premium amenities.",
+    features: {
+      area: "160 sq ft",
+      furnished: true,
+      parking: "Dedicated",
+      wifi: "Premium included"
+    },
+    location: "Greater Kailash, Delhi",
+    nearbyFacilities: ["Metro - 5 min", "Mall - 8 min", "Airport - 45 min"],
+    isRecommended: false
+  },
+  {
+    id: 15,
+    title: "Cozy Twin Sharing - Delhi East",
+    type: "Twin Sharing",
+    floor: 2,
+    floorType: "Low Floor",
+    window: "Garden View",
+    windowType: "some-windows",
+    lightType: "moderate",
+    rent: 16000,
+    deposit: 32000,
+    amenities: ["Shared Bathroom", "Study Area", "Wardrobes", "Fan", "WiFi"],
+    images: ["/room10.jpg", "/room10.jpg"],
+    availability: "Available from Jan 15",
+    description: "Cozy twin sharing room in East Delhi with garden views and peaceful environment.",
+    features: {
+      area: "100 sq ft",
+      furnished: true,
+      parking: "Limited",
+      wifi: "Standard included"
+    },
+    location: "Preet Vihar, Delhi",
+    nearbyFacilities: ["Metro - 8 min", "Market - 5 min", "Park - 3 min"],
+    isRecommended: false
+  },
+  {
+    id: 9,
+    title: "Premium Twin Sharing - Pune",
+    type: "Twin Sharing",
+    floor: 4,
+    floorType: "Mid Floor",
+    window: "East-facing Windows",
+    windowType: "lots-of-windows",
+    lightType: "bright",
+    rent: 22000,
+    deposit: 44000,
+    amenities: ["Private Bathroom", "Study Desks", "Wardrobes", "AC", "Balcony"],
+    images: ["/room3.jpg", "/room3.jpg"],
+    availability: "Available Now",
+    description: "Premium twin sharing with modern amenities in Pune's IT hub area.",
+    features: {
+      area: "130 sq ft",
+      furnished: true,
+      parking: "Available",
+      wifi: "High-speed included"
+    },
+    location: "Hinjewadi, Pune",
+    nearbyFacilities: ["IT Park - 10 min", "Mall - 8 min", "Metro - 15 min"],
+    isRecommended: false
+  },
+  {
+    id: 10,
+    title: "Cozy Single Room - Chennai",
+    type: "Single Room",
+    floor: 2,
+    floorType: "Low Floor",
+    window: "South-facing Window",
+    windowType: "some-windows",
+    lightType: "moderate",
+    rent: 20000,
+    deposit: 40000,
+    amenities: ["Private Bathroom", "Study Corner", "Wardrobe", "Fan", "WiFi"],
+    images: ["/room4.jpg", "/room4.jpg"],
+    availability: "Available Now",
+    description: "Comfortable single room in Chennai with good ventilation and peaceful surroundings.",
+    features: {
+      area: "120 sq ft",
+      furnished: true,
+      parking: "Available",
+      wifi: "Standard included"
+    },
+    location: "Velachery, Chennai",
+    nearbyFacilities: ["Bus Stop - 5 min", "IT Park - 20 min", "Mall - 12 min"],
+    isRecommended: false
+  },
+  {
+    id: 11,
+    title: "Luxury Single Room - Hyderabad",
+    type: "Single Room",
+    floor: 7,
+    floorType: "High Floor",
+    window: "Panoramic City View",
+    windowType: "lots-of-windows",
+    lightType: "bright",
+    rent: 30000,
+    deposit: 60000,
+    amenities: ["Private Bathroom", "Work Station", "Walk-in Closet", "AC", "City View"],
+    images: ["/room5.jpg", "/room5.jpg"],
+    availability: "Available from Jan 20",
+    description: "Luxury single room with stunning city views and premium amenities in Hyderabad.",
+    features: {
+      area: "170 sq ft",
+      furnished: true,
+      parking: "Dedicated",
+      wifi: "Premium included"
+    },
+    location: "HITEC City, Hyderabad",
+    nearbyFacilities: ["IT Hub - 5 min", "Metro - 10 min", "Mall - 8 min"],
+    isRecommended: false
   }
 ];
 
@@ -165,6 +392,7 @@ interface Filters {
 }
 
 export default function RoomsPage() {
+  const { profile } = useProfile();
   const [rooms, setRooms] = useState(mockRooms);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<typeof mockRooms[0] | null>(null);
@@ -175,6 +403,84 @@ export default function RoomsPage() {
     floor: 'all',
     availability: 'all'
   });
+
+  // Function to calculate room relevance score based on user preferences
+  const calculateRoomScore = (room: typeof mockRooms[0]) => {
+    let score = 0;
+    
+    // Room type match (highest priority after city filtering)
+    if (profile?.roomType) {
+      const roomTypeMap: Record<string, string> = {
+        'single-room': 'Single Room',
+        'twin-sharing': 'Twin Sharing'
+      };
+      if (roomTypeMap[profile.roomType] === room.type) score += 100;
+    }
+    
+    // Floor preference match
+    if (profile?.floorPreference) {
+      const floorMap: Record<string, string> = {
+        'low': 'Ground Floor',
+        'mid': 'Mid Floor', 
+        'high': 'High Floor'
+      };
+      if (floorMap[profile.floorPreference] === room.floorType) score += 50;
+    }
+    
+    // Window preference match
+    if (profile?.windowPreference && profile.windowPreference === room.windowType) {
+      score += 30;
+    }
+    
+    // Light preference match
+    if (profile?.lightPreference && profile.lightPreference === room.lightType) {
+      score += 20;
+    }
+    
+    console.log(`Room: ${room.title}, Final Score: ${score}`);
+    return score;
+  };
+
+  // Get personalized room recommendations
+  const getPersonalizedRooms = () => {
+    if (!profile) return mockRooms;
+    
+    let availableRooms = mockRooms;
+    
+    // FIRST: Filter by preferred city (show ONLY that city)
+    if (profile?.preferredCity) {
+      availableRooms = mockRooms.filter(room => 
+        room.location.toLowerCase().includes(profile.preferredCity.toLowerCase())
+      );
+      
+      console.log(`Filtering for city: ${profile.preferredCity}`);
+      console.log(`Found ${availableRooms.length} rooms in ${profile.preferredCity}`);
+    }
+    
+    // SECOND: Score the filtered rooms and sort by other preferences
+    const scoredRooms = availableRooms.map(room => ({
+      ...room,
+      score: calculateRoomScore(room),
+      isRecommended: false // Reset recommendations
+    }));
+    
+    // Sort by score (highest first)
+    scoredRooms.sort((a, b) => b.score - a.score);
+    
+    // Mark top 3 as recommended (or all if less than 3)
+    const topCount = Math.min(3, scoredRooms.length);
+    scoredRooms.slice(0, topCount).forEach(room => {
+      room.isRecommended = true;
+    });
+    
+    return scoredRooms;
+  };
+
+  // Apply personalized recommendations on component mount
+  useEffect(() => {
+    const personalizedRooms = getPersonalizedRooms();
+    setRooms(personalizedRooms);
+  }, [profile]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -203,7 +509,8 @@ export default function RoomsPage() {
   };
 
   const applyFilters = () => {
-    let filteredRooms = mockRooms;
+    // Start with personalized recommendations
+    let filteredRooms = getPersonalizedRooms();
 
     if (filters.type !== 'all') {
       filteredRooms = filteredRooms.filter(room => room.type === filters.type);
@@ -228,7 +535,9 @@ export default function RoomsPage() {
       floor: 'all',
       availability: 'all'
     });
-    setRooms(mockRooms);
+    // Reset to personalized recommendations instead of all rooms
+    const personalizedRooms = getPersonalizedRooms();
+    setRooms(personalizedRooms);
     setShowFilters(false);
   };
 
@@ -270,7 +579,12 @@ export default function RoomsPage() {
               </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Available Rooms</h1>
-                <p className="text-sm text-gray-600 hidden sm:block">Find your perfect living space</p>
+                <p className="text-sm text-gray-600 hidden sm:block">
+                  {profile?.preferredCity 
+                    ? `Personalized for ${profile.preferredCity} • ${profile.roomType?.replace('-', ' ')}`
+                    : 'Find your perfect living space'
+                  }
+                </p>
               </div>
             </div>
             
@@ -297,7 +611,12 @@ export default function RoomsPage() {
         {/* Recommended Rooms */}
         {rooms.some(room => room.isRecommended) && (
           <div className="mb-8">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Recommended for You</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
+              {profile?.preferredCity 
+                ? `Perfect Matches in ${profile.preferredCity}` 
+                : 'Recommended for You'
+              }
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {rooms.filter(room => room.isRecommended).map((room) => (
                 <RoomCard key={room.id} room={room} onExpressInterest={handleExpressInterest} isRecommended />
@@ -536,7 +855,7 @@ function RoomCard({
     }`}>
       {isRecommended && (
         <div className="bg-gradient-to-r from-[#A866FF] to-[#6F3CFF] text-white text-center py-2">
-          <span className="text-sm font-semibold">✨ Recommended for You</span>
+          <span className="text-sm font-semibold">✨ Perfect Match for Your Preferences</span>
         </div>
       )}
       

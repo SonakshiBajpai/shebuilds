@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useProfile } from '../contexts/ProfileContext';
 
 // Mock matches data
 const mockMatches = [
@@ -439,6 +440,7 @@ interface Filters {
 }
 
 export default function MatchesPage() {
+  const { profile } = useProfile();
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [matches, setMatches] = useState(mockMatches);
   const [showFilters, setShowFilters] = useState(false);
@@ -458,9 +460,194 @@ export default function MatchesPage() {
     type: 'like' | 'skip' | 'save';
     message: string;
   }>({ show: false, type: 'like', message: '' });
+  
+  // AI Matching State
+  const [isGeneratingMatches, setIsGeneratingMatches] = useState(false);
+  const [aiProcessingStep, setAiProcessingStep] = useState('');
+  
   const cardRef = useRef<HTMLDivElement>(null);
 
   const currentMatch = matches[currentMatchIndex];
+
+  // AI Roommate Matching Function
+  const generateAIMatches = async () => {
+    if (!profile) {
+      alert('Please complete your onboarding first!');
+      return;
+    }
+    
+    setIsGeneratingMatches(true);
+    setAiProcessingStep('Initializing ML Pipeline...');
+    
+    try {
+      const userProfile = {
+        age: profile.age,
+        cleanliness: profile.cleanliness,
+        currentCity: profile.currentCity,
+        drinking: profile.drinking,
+        floorPreference: profile.floorPreference,
+        foodHabits: profile.foodHabits,
+        guestPolicy: profile.guestPolicy,
+        lightPreference: profile.lightPreference,
+        preferredCity: profile.preferredCity,
+        profession: profile.profession,
+        roomType: profile.roomType,
+        sleepSchedule: profile.sleepSchedule,
+        smoking: profile.smoking,
+        windowPreference: profile.windowPreference,
+        personality: profile.personality
+      };
+
+      setAiProcessingStep('Connecting to ML Service...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const response = await fetch('/api/roommate-matching', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userProfile),
+      });
+
+      if (!response.ok) {
+        throw new Error('ML Service unavailable');
+      }
+
+      const result = await response.json();
+      setAiProcessingStep('Converting ML data to match cards...');
+      
+      // Convert ML response to match card format
+      const aiMatches = result.matches.map((match: any, index: number) => ({
+        id: 1000 + index, // Unique IDs for AI matches
+        name: getNameFromProfession(match.profile.profession, match.profile.currentCity),
+        age: parseInt(match.profile.age),
+        profession: match.profile.profession,
+        city: match.profile.currentCity,
+        compatibility: match.match_score,
+        avatar: match.profile.image || `/profile${(index % 5) + 1}.jpg`, // Use real image or fallback
+        sharedTraits: getSharedTraits(match.profile, match.confidence),
+        bio: match.profile.bio || generateBio(match.profile, match.match_score),
+        interests: getInterestsFromProfile(match.profile),
+        lifestyle: {
+          cleanliness: match.compatibility_factors.lifestyle_match / 20, // Convert to 1-5 scale
+          sleepTime: getSleepTimeFromSchedule(match.profile.sleepSchedule),
+          visitorTolerance: getVisitorToleranceFromPolicy(match.profile.guestPolicy)
+        },
+        confidence: match.confidence,
+        mlScore: match.match_score
+      }));
+
+      // Add AI matches to the beginning of the array
+      setMatches([...aiMatches, ...mockMatches]);
+      setCurrentMatchIndex(0); // Start with AI matches
+      setAiProcessingStep('');
+      
+      console.log('🎉 AI Matches Generated:', aiMatches.length);
+      
+    } catch (error) {
+      console.error('AI matching failed:', error);
+      setAiProcessingStep('ML Service Error - Please try again');
+      setTimeout(() => setAiProcessingStep(''), 3000);
+    } finally {
+      setIsGeneratingMatches(false);
+    }
+  };
+
+  // Helper functions for ML data conversion
+  const getNameFromProfession = (profession: string, city: string) => {
+    const names = {
+      'travel blogger': ['Ariana Santos', 'Luna Rodriguez', 'Sofia Costa'],
+      'fashion model': ['Isabella White', 'Sophia Grace', 'Emma Rose'],
+      'marine biologist': ['Maya Patel', 'Aria Sharma', 'Zara Khan'],
+      'filmmaker': ['Kiara Malhotra', 'Diya Agarwal', 'Tara Singhania'],
+      'photographer': ['Aisha Khanna', 'Mira Joshi', 'Riya Das'],
+      'software engineer': ['Ananya Gupta', 'Kavya Reddy', 'Shreya Nair'],
+      'yoga instructor': ['Sakshi Verma', 'Meera Kaul', 'Aditi Sharma'],
+      'marine researcher': ['Nisha Menon', 'Deepa Nair', 'Lakshmi Iyer'],
+      'graphic designer': ['Pooja Singh', 'Rhea Kapoor', 'Isha Patel'],
+      'sunset photographer': ['Rajni Jodhpur', 'Arya Rathore', 'Sanya Mewar'],
+      'travel writer': ['Amara Khan', 'Zoya Malik', 'Farah Ahmed'],
+      'heritage architect': ['Priya Agarwal', 'Divya Jaisingh', 'Meghna Raje'],
+      'environmental scientist': ['Simran Kaur', 'Anjali Bhatia', 'Roshni Sethi'],
+      'coffee plantation owner': ['Kriti Hegde', 'Vani Rao', 'Nandini Shetty'],
+      'cultural anthropologist': ['Devika Iyer', 'Kamala Raman', 'Vasudha Krishnan'],
+      'default': ['Deepika Sharma', 'Aishwarya Gupta', 'Swati Reddy']
+    };
+    const nameList = names[profession.toLowerCase() as keyof typeof names] || names.default;
+    return nameList[Math.floor(Math.random() * nameList.length)];
+  };
+
+  const getSharedTraits = (profile: any, confidence: string) => {
+    const traits = [];
+    if (profile.smoking === 'never') traits.push('Non-Smoker');
+    if (profile.guestPolicy === 'rare') traits.push('Quiet Lifestyle');
+    if (profile.sleepSchedule === 'early-riser') traits.push('Early Bird');
+    if (confidence === 'high') traits.push('Perfect Match');
+    return traits.length > 0 ? traits : ['Compatible', 'Similar Values', 'Good Match'];
+  };
+
+  const generateBio = (profile: any, score: number) => {
+    const professionBios = {
+      'travel blogger': 'Adventure seeker documenting hidden gems and cultural experiences across diverse landscapes.',
+      'fashion model': 'Professional model passionate about sustainable fashion and peaceful countryside retreats.',
+      'marine biologist': 'Ocean conservationist dedicated to protecting coral reefs and marine biodiversity.',
+      'filmmaker': 'Independent storyteller capturing the essence of modern India through cinematic narratives.',
+      'photographer': 'Nature photographer specializing in mountain landscapes and golden hour captures.',
+      'software engineer': 'Tech professional who finds balance through weekend hikes and outdoor adventures.',
+      'yoga instructor': 'Mindfulness coach sharing the healing power of mountains and authentic wellness practices.',
+      'marine researcher': 'Ocean scientist studying coastal ecosystems while finding inspiration in pristine beaches.',
+      'graphic designer': 'Creative professional blending traditional cultural elements with contemporary design aesthetics.',
+      'sunset photographer': 'Golden hour specialist capturing the magical interplay of ancient architecture and natural light.',
+      'travel writer': 'Experienced storyteller documenting untold cultural narratives from remote mountain regions.',
+      'heritage architect': 'Preservation specialist dedicated to maintaining historical architecture for future generations.',
+      'environmental scientist': 'Sustainability advocate developing innovative solutions for urban environmental challenges.',
+      'coffee plantation owner': 'Third-generation coffee grower committed to sustainable farming and mountain community living.',
+      'cultural anthropologist': 'Researcher exploring traditional coastal communities and their evolving cultural practices.',
+    };
+    const baseBio = professionBios[profile.profession.toLowerCase() as keyof typeof professionBios] || 
+                   'Passionate individual with diverse interests looking for a compatible living companion.';
+    return `${baseBio} ${score > 85 ? 'Highly compatible lifestyle and shared values.' : 'Shares similar living preferences and interests.'}`;
+  };
+
+  const getInterestsFromProfile = (profile: any) => {
+    const interestMap = {
+      'travel blogger': ['Travel', 'Photography', 'Writing', 'Adventure Sports'],
+      'fashion model': ['Fashion', 'Photography', 'Fitness', 'Sustainable Living'],
+      'marine biologist': ['Ocean Conservation', 'Scuba Diving', 'Research', 'Wildlife Photography'],
+      'filmmaker': ['Cinematography', 'Storytelling', 'Art', 'Cultural Studies'],
+      'photographer': ['Photography', 'Nature', 'Art Exhibitions', 'Mountain Trekking'],
+      'software engineer': ['Technology', 'Hiking', 'Coding', 'Innovation'],
+      'yoga instructor': ['Meditation', 'Wellness', 'Mountain Retreats', 'Ayurveda'],
+      'marine researcher': ['Ocean Studies', 'Conservation', 'Beach Walks', 'Sustainable Living'],
+      'graphic designer': ['Digital Art', 'Traditional Art', 'Design', 'Cultural Heritage'],
+      'sunset photographer': ['Golden Hour Photography', 'Architecture', 'Heritage Sites', 'Art'],
+      'travel writer': ['Writing', 'Cultural Exploration', 'Winter Sports', 'Literature'],
+      'heritage architect': ['Architecture', 'Heritage Conservation', 'History', 'Craftsmanship'],
+      'environmental scientist': ['Sustainability', 'Urban Planning', 'Nature', 'Green Technology'],
+      'coffee plantation owner': ['Coffee Culture', 'Sustainable Farming', 'Nature', 'Outdoor Living'],
+      'cultural anthropologist': ['Culture', 'Traditional Arts', 'Research', 'Community Work'],
+    };
+    return interestMap[profile.profession.toLowerCase() as keyof typeof interestMap] || 
+           ['Movies', 'Music', 'Travel', 'Reading'];
+  };
+
+  const getSleepTimeFromSchedule = (schedule: string) => {
+    switch (schedule) {
+      case 'early-riser': return 22; // 10 PM
+      case 'night-owl': return 24.5; // 12:30 AM
+      case 'flexible': return 23; // 11 PM
+      default: return 23;
+    }
+  };
+
+  const getVisitorToleranceFromPolicy = (policy: string) => {
+    switch (policy) {
+      case 'rare': return 1;
+      case 'occasional': return 3;
+      case 'frequent': return 5;
+      default: return 3;
+    }
+  };
 
   const handleAction = (action: 'like' | 'skip' | 'save') => {
     if (!currentMatch) return;
@@ -645,6 +832,29 @@ export default function MatchesPage() {
               <span className="text-sm text-gray-600 font-medium hidden sm:block">
                 {currentMatchIndex + 1} of {matches.length}
               </span>
+              
+              {/* AI Generate Button */}
+              <button
+                onClick={generateAIMatches}
+                disabled={isGeneratingMatches}
+                className="bg-gradient-to-r from-[#A866FF] to-[#6F3CFF] text-white px-3 py-2 rounded-lg hover:from-[#A353F2] hover:to-[#7D3EFF] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                {isGeneratingMatches ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span className="hidden sm:inline">{aiProcessingStep || 'Processing...'}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    <span className="hidden sm:inline">🧠 AI Match</span>
+                    <span className="sm:hidden">AI</span>
+                  </div>
+                )}
+              </button>
+              
               <button
                 onClick={() => setShowFilters(true)}
                 className="p-2 text-gray-600 hover:text-[#7D3EFF] transition-colors"
@@ -766,6 +976,8 @@ export default function MatchesPage() {
                   </div>
                 </div>
               </div>
+
+
             </div>
 
             {/* Center - Main Match Card */}
@@ -861,7 +1073,14 @@ export default function MatchesPage() {
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                       <span className="text-lg font-bold text-green-600">{currentMatch.compatibility}%</span>
                     </div>
-                    <p className="text-xs text-gray-500">Match</p>
+                    <div className="flex items-center justify-end space-x-1">
+                      <p className="text-xs text-gray-500">Match</p>
+                      {currentMatch.id >= 1000 && (
+                        <span className="bg-gradient-to-r from-[#A866FF] to-[#6F3CFF] text-white text-xs px-2 py-1 rounded-full font-medium">
+                          🧠 AI
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1145,7 +1364,14 @@ export default function MatchesPage() {
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                       <span className="text-lg font-bold text-green-600">{currentMatch.compatibility}%</span>
                     </div>
-                    <p className="text-xs text-gray-500">Match</p>
+                    <div className="flex items-center justify-end space-x-1">
+                      <p className="text-xs text-gray-500">Match</p>
+                      {currentMatch.id >= 1000 && (
+                        <span className="bg-gradient-to-r from-[#A866FF] to-[#6F3CFF] text-white text-xs px-2 py-1 rounded-full font-medium">
+                          🧠 AI
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
